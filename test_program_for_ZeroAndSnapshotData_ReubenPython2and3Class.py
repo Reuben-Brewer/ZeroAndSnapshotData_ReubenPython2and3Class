@@ -6,20 +6,28 @@ reuben.brewer@gmail.com
 www.reubotics.com
 
 Apache 2 License
-Software Revision D, 05/10/2023
+Software Revision E, 12/26/2025
 
-Verified working on: Python 2.7, 3.8 for Windows 8.1, 10 64-bit and Raspberry Pi Buster (does not work on Mac).
+Verified working on: Python 3.11/12/13 for Windows 10/11 64-bit and Raspberry Pi Bookworm (does not work on Mac).
 '''
 
 __author__ = 'reuben.brewer'
 
-#########################################################
-from ZeroAndSnapshotData_ReubenPython2and3Class import *
-from MyPrint_ReubenPython2and3Class import *
-from MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class import *
-#########################################################
+##########################################################################################################
+##########################################################################################################
 
-#########################################################
+#################################################
+import ReubenGithubCodeModulePaths #Replaces the need to have "ReubenGithubCodeModulePaths.pth" within "C:\Anaconda3\Lib\site-packages".
+ReubenGithubCodeModulePaths.Enable()
+#################################################
+
+#################################################
+from MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class import *
+from MyPrint_ReubenPython2and3Class import *
+from ZeroAndSnapshotData_ReubenPython2and3Class import *
+#################################################
+
+#################################################
 import os
 import sys
 import platform
@@ -27,28 +35,139 @@ import time
 import datetime
 import threading
 import collections
-#########################################################
+import random
+import math
+import traceback
+import keyboard
+#################################################
 
-#########################################################
-if sys.version_info[0] < 3:
-    from Tkinter import * #Python 2
-    import tkFont
-    import ttk
-else:
-    from tkinter import * #Python 3
-    import tkinter.font as tkFont #Python 3
-    from tkinter import ttk
-#########################################################
+#################################################
+from tkinter import *
+import tkinter.font as tkFont
+from tkinter import ttk
+#################################################
 
-#########################################################
+#################################################
 import platform
 if platform.system() == "Windows":
     import ctypes
     winmm = ctypes.WinDLL('winmm')
     winmm.timeBeginPeriod(1) #Set minimum timer resolution to 1ms so that time.sleep(0.001) behaves properly.
-#########################################################
+#################################################
 
-###########################################################################################################
+##########################################################################################################
+##########################################################################################################
+
+##########################################################################################################
+##########################################################################################################
+##########################################################################################################
+##########################################################################################################
+def GetLatestWaveformValue(CurrentTime, MinValue, MaxValue, Period, WaveformTypeString="Sine"):
+    
+        ##########################################################################################################
+        ##########################################################################################################
+        ##########################################################################################################
+        try:
+
+            ##########################################################################################################
+            ##########################################################################################################
+            OutputValue = 0.0
+            ##########################################################################################################
+            ##########################################################################################################
+
+            ##########################################################################################################
+            ##########################################################################################################
+            WaveformTypeString_ListOfAcceptableValues = ["Sine", "Cosine", "Triangular", "Square"]
+        
+            if WaveformTypeString not in WaveformTypeString_ListOfAcceptableValues:
+                print("GetLatestWaveformValue: Error, WaveformTypeString must be in " + str(WaveformTypeString_ListOfAcceptableValues))
+                return -11111.0
+            ##########################################################################################################
+            ##########################################################################################################
+
+            ##########################################################################################################
+            ##########################################################################################################
+            if WaveformTypeString == "Sine":
+    
+                TimeGain = math.pi/Period
+                OutputValue = (MaxValue + MinValue)/2.0 + 0.5*abs(MaxValue - MinValue)*math.sin(TimeGain*CurrentTime)
+            ##########################################################################################################
+            ##########################################################################################################
+
+            ##########################################################################################################
+            ##########################################################################################################
+            elif WaveformTypeString == "Cosine":
+    
+                TimeGain = math.pi/Period
+                OutputValue = (MaxValue + MinValue)/2.0 + 0.5*abs(MaxValue - MinValue)*math.cos(TimeGain*CurrentTime)
+            ##########################################################################################################
+            ##########################################################################################################
+
+            ##########################################################################################################
+            ##########################################################################################################
+            elif WaveformTypeString == "Triangular":
+                TriangularInput_TimeGain = 1.0
+                TriangularInput_MinValue = -5
+                TriangularInput_MaxValue = 5.0
+                TriangularInput_PeriodInSeconds = 2.0
+        
+                #TriangularInput_Height0toPeak = abs(TriangularInput_MaxValue - TriangularInput_MinValue)
+                #TriangularInput_CalculatedValue_1 = abs((TriangularInput_TimeGain*CurrentTime_CalculatedFromMainThread % PeriodicInput_PeriodInSeconds) - TriangularInput_Height0toPeak) + TriangularInput_MinValue
+        
+                A = abs(MaxValue - MinValue)
+                P = Period
+    
+                #https://stackoverflow.com/questions/1073606/is-there-a-one-line-function-that-generates-a-triangle-wave
+                OutputValue = (A / (P / 2)) * ((P / 2) - abs(CurrentTime % (2 * (P / 2)) - P / 2)) + MinValue
+            ##########################################################################################################
+            ##########################################################################################################
+
+            ##########################################################################################################
+            ##########################################################################################################
+            elif WaveformTypeString == "Square":
+    
+                TimeGain = math.pi/Period
+                MeanValue = (MaxValue + MinValue)/2.0
+                SinusoidalValue =  MeanValue + 0.5*abs(MaxValue - MinValue)*math.sin(TimeGain*CurrentTime)
+                
+                if SinusoidalValue >= MeanValue:
+                    OutputValue = MaxValue
+                else:
+                    OutputValue = MinValue
+            ##########################################################################################################
+            ##########################################################################################################
+
+            ##########################################################################################################
+            ##########################################################################################################
+            else:
+                OutputValue = 0.0
+            ##########################################################################################################
+            ##########################################################################################################
+            
+            return OutputValue
+
+        ##########################################################################################################
+        ##########################################################################################################
+        ##########################################################################################################
+        
+        ##########################################################################################################
+        ##########################################################################################################
+        ##########################################################################################################
+        except:
+            exceptions = sys.exc_info()[0]
+            print("GetLatestWaveformValue: Exceptions: %s" % exceptions)
+            #return -11111.0
+            traceback.print_exc()
+        ##########################################################################################################
+        ##########################################################################################################
+        ##########################################################################################################
+
+##########################################################################################################
+##########################################################################################################
+##########################################################################################################
+##########################################################################################################
+
+##########################################################################################################
 ##########################################################################################################
 def getPreciseSecondsTimeStampString():
     ts = time.time()
@@ -259,12 +378,12 @@ def ConvertDictToProperlyFormattedStringForPrinting(DictToPrint, NumberOfDecimal
 
         if isinstance(DictToPrint[Key], dict): #RECURSION
             ProperlyFormattedStringForPrinting = ProperlyFormattedStringForPrinting + \
-                                                 Key + ":\n" + \
+                                                 str(Key) + ":\n" + \
                                                  ConvertDictToProperlyFormattedStringForPrinting(DictToPrint[Key], NumberOfDecimalsPlaceToUse, NumberOfEntriesPerLine, NumberOfTabsBetweenItems)
 
         else:
             ProperlyFormattedStringForPrinting = ProperlyFormattedStringForPrinting + \
-                                                 Key + ": " + \
+                                                 str(Key) + ": " + \
                                                  ConvertFloatToStringWithNumberOfLeadingNumbersAndDecimalPlaces_NumberOrListInput(DictToPrint[Key], 0, NumberOfDecimalsPlaceToUse)
 
         if ItemsPerLineCounter < NumberOfEntriesPerLine - 1:
@@ -287,17 +406,18 @@ def GUI_update_clock():
     global USE_GUI_FLAG
     global DebuggingInfo_Label
 
-    global ZeroAndSnapshotData_ReubenPython2and3ClassObject
+    global ZeroAndSnapshotData_Object
     global ZeroAndSnapshotData_OPEN_FLAG
     global SHOW_IN_GUI_ZeroAndSnapshotData_FLAG
 
-    global MyPrint_ReubenPython2and3ClassObject
-    global MYPRINT_OPEN_FLAG
-    global SHOW_IN_GUI_MYPRINT_FLAG
+    global MyPrint_Object
+    global MyPrint_OPEN_FLAG
+    global SHOW_IN_GUI_MyPrint_FLAG
 
     global ZeroAndSnapshotData_MostRecentDict
 
     if USE_GUI_FLAG == 1:
+
         if EXIT_PROGRAM_FLAG == 0:
         #########################################################
         #########################################################
@@ -308,12 +428,12 @@ def GUI_update_clock():
 
             #########################################################
             if ZeroAndSnapshotData_OPEN_FLAG == 1 and SHOW_IN_GUI_ZeroAndSnapshotData_FLAG == 1:
-                ZeroAndSnapshotData_ReubenPython2and3ClassObject.GUI_update_clock()
+                ZeroAndSnapshotData_Object.GUI_update_clock()
             #########################################################
 
             #########################################################
-            if MYPRINT_OPEN_FLAG == 1 and SHOW_IN_GUI_MYPRINT_FLAG == 1:
-                MyPrint_ReubenPython2and3ClassObject.GUI_update_clock()
+            if MyPrint_OPEN_FLAG == 1 and SHOW_IN_GUI_MyPrint_FLAG == 1:
+                MyPrint_Object.GUI_update_clock()
             #########################################################
 
             root.after(GUI_RootAfterCallbackInterval_Milliseconds, GUI_update_clock)
@@ -325,7 +445,7 @@ def GUI_update_clock():
 
 ##########################################################################################################
 ##########################################################################################################
-def ExitProgram_Callback():
+def ExitProgram_Callback(OptionalArugment = 0):
     global EXIT_PROGRAM_FLAG
 
     print("ExitProgram_Callback event fired!")
@@ -347,9 +467,19 @@ def GUI_Thread():
     global DebuggingInfo_Label
     global TestButton
 
+    global ZeroAndSnapshotData_Object
+    global ZeroAndSnapshotData_OPEN_FLAG
+
+    global MyPrint_Object
+    global MyPrint_OPEN_FLAG
+
     ################################################# KEY GUI LINE
     #################################################
     root = Tk()
+    
+    root.protocol("WM_DELETE_WINDOW", ExitProgram_Callback)  # Set the callback function for when the window's closed.
+    root.title("test_program_for_ZeroAndSnapshotData_ReubenPython2and3Class")
+    root.geometry('%dx%d+%d+%d' % (root_width, root_height, root_Xpos, root_Ypos)) # set the dimensions of the screen and where it is placed
     #################################################
     #################################################
 
@@ -391,26 +521,45 @@ def GUI_Thread():
     #################################################
 
     #################################################
+    #################################################
     DebuggingInfo_Label = Label(Tab_MainControls, text="Device Info", width=120, font=("Helvetica", 10))
     DebuggingInfo_Label.grid(row=1, column=0, padx=1, pady=1, columnspan=10, rowspan=1)
     #################################################
+    #################################################
+
+    #################################################
+    #################################################
+    if ZeroAndSnapshotData_OPEN_FLAG == 1:
+        ZeroAndSnapshotData_Object.CreateGUIobjects(TkinterParent=Tab_ZeroAndSnapshotData)
+    #################################################
+    #################################################
+
+    #################################################
+    #################################################
+    if MyPrint_OPEN_FLAG == 1:
+        MyPrint_Object.CreateGUIobjects(TkinterParent=Tab_MyPrint)
+    #################################################
+    #################################################
 
     ################################################# THIS BLOCK MUST COME 2ND-TO-LAST IN def GUI_Thread() IF USING TABS.
-    root.protocol("WM_DELETE_WINDOW", ExitProgram_Callback)  # Set the callback function for when the window's closed.
-    root.title("test_program_for_ZeroAndSnapshotData_ReubenPython2and3Class")
-    root.geometry('%dx%d+%d+%d' % (root_width, root_height, root_Xpos, root_Ypos)) # set the dimensions of the screen and where it is placed
+    #################################################
     root.after(GUI_RootAfterCallbackInterval_Milliseconds, GUI_update_clock)
     root.mainloop()
     #################################################
+    #################################################
 
     #################################################  THIS BLOCK MUST COME LAST IN def GUI_Thread() REGARDLESS OF CODE.
+    #################################################
     root.quit() #Stop the GUI thread, MUST BE CALLED FROM GUI_Thread
     root.destroy() #Close down the GUI thread, MUST BE CALLED FROM GUI_Thread
+    #################################################
     #################################################
 
 ##########################################################################################################
 ##########################################################################################################
 
+##########################################################################################################
+##########################################################################################################
 ##########################################################################################################
 ##########################################################################################################
 if __name__ == '__main__':
@@ -444,11 +593,11 @@ if __name__ == '__main__':
     global USE_ZeroAndSnapshotData_FLAG
     USE_ZeroAndSnapshotData_FLAG = 1
 
-    global USE_MYPRINT_FLAG
-    USE_MYPRINT_FLAG = 1
+    global USE_MyPrint_FLAG
+    USE_MyPrint_FLAG = 1
 
-    global USE_PLOTTER_FLAG
-    USE_PLOTTER_FLAG = 1
+    global USE_MyPlotterPureTkinterStandAloneProcess_FLAG
+    USE_MyPlotterPureTkinterStandAloneProcess_FLAG = 1
 
     global USE_GUI_FLAG
     USE_GUI_FLAG = 1
@@ -456,14 +605,17 @@ if __name__ == '__main__':
     global USE_TABS_IN_GUI_FLAG
     USE_TABS_IN_GUI_FLAG = 1
 
-    global USE_SINUSOIDAL_INPUT_FLAG
-    USE_SINUSOIDAL_INPUT_FLAG = 0
+    global USE_PeriodicInput_FLAG
+    USE_PeriodicInput_FLAG = 1
 
     global USE_SPECKLE_NOISE_FLAG
     USE_SPECKLE_NOISE_FLAG = 1
 
     global USE_PrintMostRecentDictForDebuggingFlag
     USE_PrintMostRecentDictForDebuggingFlag = 0
+
+    global USE_KEYBOARD_FLAG
+    USE_KEYBOARD_FLAG = 1
     #################################################
     #################################################
 
@@ -472,8 +624,8 @@ if __name__ == '__main__':
     global SHOW_IN_GUI_ZeroAndSnapshotData_FLAG
     SHOW_IN_GUI_ZeroAndSnapshotData_FLAG = 1
 
-    global SHOW_IN_GUI_MYPRINT_FLAG
-    SHOW_IN_GUI_MYPRINT_FLAG = 1
+    global SHOW_IN_GUI_MyPrint_FLAG
+    SHOW_IN_GUI_MyPrint_FLAG = 1
     #################################################
     #################################################
 
@@ -493,19 +645,19 @@ if __name__ == '__main__':
     GUI_ROWSPAN_ZeroAndSnapshotData = 1
     GUI_COLUMNSPAN_ZeroAndSnapshotData = 1
 
-    global GUI_ROW_MYPRINT
-    global GUI_COLUMN_MYPRINT
-    global GUI_PADX_MYPRINT
-    global GUI_PADY_MYPRINT
-    global GUI_ROWSPAN_MYPRINT
-    global GUI_COLUMNSPAN_MYPRINT
-    GUI_ROW_MYPRINT = 2
+    global GUI_ROW_MyPrint
+    global GUI_COLUMN_MyPrint
+    global GUI_PADX_MyPrint
+    global GUI_PADY_MyPrint
+    global GUI_ROWSPAN_MyPrint
+    global GUI_COLUMNSPAN_MyPrint
+    GUI_ROW_MyPrint = 2
 
-    GUI_COLUMN_MYPRINT = 0
-    GUI_PADX_MYPRINT = 1
-    GUI_PADY_MYPRINT = 1
-    GUI_ROWSPAN_MYPRINT = 1
-    GUI_COLUMNSPAN_MYPRINT = 1
+    GUI_COLUMN_MyPrint = 0
+    GUI_PADX_MyPrint = 1
+    GUI_PADY_MyPrint = 1
+    GUI_ROWSPAN_MyPrint = 1
+    GUI_COLUMNSPAN_MyPrint = 1
     #################################################
     #################################################
 
@@ -517,8 +669,8 @@ if __name__ == '__main__':
     global CurrentTime_MainLoopThread
     CurrentTime_MainLoopThread = -11111.0
 
-    global LastTime_MainLoopThread_PLOTTER
-    LastTime_MainLoopThread_PLOTTER = -11111.0
+    global LastTime_MainLoopThread_MyPlotterPureTkinterStandAloneProcess
+    LastTime_MainLoopThread_MyPlotterPureTkinterStandAloneProcess = -11111.0
 
     global StartingTime_MainLoopThread
     StartingTime_MainLoopThread = -11111.0
@@ -545,26 +697,38 @@ if __name__ == '__main__':
     global GUI_RootAfterCallbackInterval_Milliseconds
     GUI_RootAfterCallbackInterval_Milliseconds = 30
 
-    global SINUSOIDAL_MOTION_INPUT_ROMtestTimeToPeakAngle
-    SINUSOIDAL_MOTION_INPUT_ROMtestTimeToPeakAngle = 1.0
+    global PeriodicInput_AcceptableValues
+    PeriodicInput_AcceptableValues = ["GUI", "Sine", "Cosine", "Triangular", "Square"]
 
-    global SINUSOIDAL_MOTION_INPUT_MinValue
-    SINUSOIDAL_MOTION_INPUT_MinValue = -1.0
+    global PeriodicInput_Type_1
+    PeriodicInput_Type_1 = "Sine"
 
-    global SINUSOIDAL_MOTION_INPUT_MaxValue
-    SINUSOIDAL_MOTION_INPUT_MaxValue = 1.0
+    global PeriodicInput_MinValue_1
+    PeriodicInput_MinValue_1 = 2.0
+
+    global PeriodicInput_MaxValue_1
+    PeriodicInput_MaxValue_1 = 3.0
+
+    global PeriodicInput_Period_1
+    PeriodicInput_Period_1 = 1.0
+
+    global PeriodicInput_CalculatedValue_1
+    PeriodicInput_CalculatedValue_1 = 0.0
 
     global NoiseCounter
     NoiseCounter = 0
 
-    global NoiseAmplitude_Percent0to1OfSinuisoidalInputAmplitude
-    NoiseAmplitude_Percent0to1OfSinuisoidalInputAmplitude = 0.05
+    global NoiseCounter_FireEveryNth
+    NoiseCounter_FireEveryNth = 5
+
+    global NoiseAmplitude_Percent0to1OfPeriodicInputAmplitude
+    NoiseAmplitude_Percent0to1OfPeriodicInputAmplitude = 0.25
     #################################################
     #################################################
 
     #################################################
     #################################################
-    global ZeroAndSnapshotData_ReubenPython2and3ClassObject
+    global ZeroAndSnapshotData_Object
 
     global ZeroAndSnapshotData_OPEN_FLAG
     ZeroAndSnapshotData_OPEN_FLAG = -1
@@ -581,230 +745,295 @@ if __name__ == '__main__':
     global ZeroAndSnapshotData_MostRecentDict_OnlyVariablesAndValuesDictOfDicts
     ZeroAndSnapshotData_MostRecentDict_OnlyVariablesAndValuesDictOfDicts = dict()
 
-    global ZeroAndSnapshotData_MostRecentDict_desired_angle_deg_1__Raw_CurrentValue
-    ZeroAndSnapshotData_MostRecentDict_desired_angle_deg_1__Raw_CurrentValue = -11111
+    global ZeroAndSnapshotData_MostRecentDict_DesiredAngleDeg1__Raw_CurrentValue
+    ZeroAndSnapshotData_MostRecentDict_DesiredAngleDeg1__Raw_CurrentValue = -11111
 
-    global ZeroAndSnapshotData_MostRecentDict_desired_angle_deg_1__Raw_CurrentValue_Zeroed
-    ZeroAndSnapshotData_MostRecentDict_desired_angle_deg_1__Raw_CurrentValue_Zeroed = -11111
+    global ZeroAndSnapshotData_MostRecentDict_DesiredAngleDeg1__Raw_CurrentValue_Zeroed
+    ZeroAndSnapshotData_MostRecentDict_DesiredAngleDeg1__Raw_CurrentValue_Zeroed = -11111
 
-    global ZeroAndSnapshotData_MostRecentDict_desired_angle_deg_1__Raw_ZeroOffsetValue
-    ZeroAndSnapshotData_MostRecentDict_desired_angle_deg_1__Raw_Raw_ZeroOffsetValue = -11111
+    global ZeroAndSnapshotData_MostRecentDict_DesiredAngleDeg1__Raw_ZeroOffsetValue
+    ZeroAndSnapshotData_MostRecentDict_DesiredAngleDeg1__Raw_Raw_ZeroOffsetValue = -11111
     #################################################
     #################################################
 
     #################################################
     #################################################
-    global MyPrint_ReubenPython2and3ClassObject
+    global MyPrint_Object
 
-    global MYPRINT_OPEN_FLAG
-    MYPRINT_OPEN_FLAG = -1
+    global MyPrint_OPEN_FLAG
+    MyPrint_OPEN_FLAG = -1
     #################################################
     #################################################
 
     ####################################################
     ####################################################
-    global MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3ClassObject
+    global MyPlotterPureTkinterStandAloneProcess_Object
 
-    global PLOTTER_OPEN_FLAG
-    PLOTTER_OPEN_FLAG = -1
+    global MyPlotterPureTkinterStandAloneProcess_OPEN_FLAG
+    MyPlotterPureTkinterStandAloneProcess_OPEN_FLAG = -1
+
+    global MyPlotterPureTkinter_MostRecentDict
+    MyPlotterPureTkinter_MostRecentDict = dict()
+
+    global MyPlotterPureTkinterStandAloneProcess_MostRecentDict_ReadyForWritingFlag
+    MyPlotterPureTkinterStandAloneProcess_MostRecentDict_ReadyForWritingFlag = -1
     ####################################################
     ####################################################
 
-    #################################################  KEY GUI LINE
+    ##########################################################################################################
+    ##########################################################################################################
+    ##########################################################################################################
+
     #################################################
-    if USE_GUI_FLAG == 1:
+    #################################################
+    global ZeroAndSnapshotData_Variables_ListOfDicts
+    ZeroAndSnapshotData_Variables_ListOfDicts = [dict([("Variable_Name", "DesiredAngleDeg1"),("DataCollectionDurationInSecondsForSnapshottingAndZeroing", 5.5)]),
+                                                  dict([("Variable_Name", "B"),("DataCollectionDurationInSecondsForSnapshottingAndZeroing", 7.5)]),
+                                                  dict([("Variable_Name", "C"),("DataCollectionDurationInSecondsForSnapshottingAndZeroing", 9.0)])]
+
+
+    global ZeroAndSnapshotData_GUIparametersDict
+    ZeroAndSnapshotData_GUIparametersDict = dict([("USE_GUI_FLAG", USE_GUI_FLAG and SHOW_IN_GUI_ZeroAndSnapshotData_FLAG),
+                                            ("EnableInternal_MyPrint_Flag", 1),
+                                            ("NumberOfPrintLines", 10),
+                                            ("UseBorderAroundThisGuiObjectFlag", 1),
+                                            ("GUI_ROW", GUI_ROW_ZeroAndSnapshotData),
+                                            ("GUI_COLUMN", GUI_COLUMN_ZeroAndSnapshotData),
+                                            ("GUI_PADX", GUI_PADX_ZeroAndSnapshotData),
+                                            ("GUI_PADY", GUI_PADY_ZeroAndSnapshotData),
+                                            ("GUI_ROWSPAN", GUI_ROWSPAN_ZeroAndSnapshotData),
+                                            ("GUI_COLUMNSPAN", GUI_COLUMNSPAN_ZeroAndSnapshotData)])
+
+    global ZeroAndSnapshotData_SetupDict
+    ZeroAndSnapshotData_SetupDict = dict([("GUIparametersDict", ZeroAndSnapshotData_GUIparametersDict),
+                                            ("NameToDisplay_UserSet", "Reuben's Test ZeroAndSnapshotData"),
+                                            ("Variables_ListOfDicts", ZeroAndSnapshotData_Variables_ListOfDicts)])
+
+    if USE_ZeroAndSnapshotData_FLAG == 1:
+        try:
+            ZeroAndSnapshotData_Object = ZeroAndSnapshotData_ReubenPython2and3Class(ZeroAndSnapshotData_SetupDict)
+            ZeroAndSnapshotData_OPEN_FLAG = ZeroAndSnapshotData_Object.OBJECT_CREATED_SUCCESSFULLY_FLAG
+
+        except:
+            exceptions = sys.exc_info()[0]
+            print("ZeroAndSnapshotData_Object __init__: Exceptions: %s" % exceptions, 0)
+            traceback.print_exc()
+    #################################################
+    #################################################
+
+    #################################################
+    #################################################
+    if USE_ZeroAndSnapshotData_FLAG == 1:
+        if EXIT_PROGRAM_FLAG == 0:
+            if ZeroAndSnapshotData_OPEN_FLAG != 1:
+                print("Failed to open ZeroAndSnapshotData_Object.")
+                ExitProgram_Callback()
+    #################################################
+    #################################################
+
+    ##########################################################################################################
+    ##########################################################################################################
+    ##########################################################################################################
+    
+    ##########################################################################################################
+    ##########################################################################################################
+    ##########################################################################################################
+
+    #################################################
+    #################################################
+    global MyPrint_GUIparametersDict
+    MyPrint_GUIparametersDict = dict([("USE_GUI_FLAG", USE_GUI_FLAG and SHOW_IN_GUI_MyPrint_FLAG),
+                                        ("UseBorderAroundThisGuiObjectFlag", 0),
+                                        ("GUI_ROW", GUI_ROW_MyPrint),
+                                        ("GUI_COLUMN", GUI_COLUMN_MyPrint),
+                                        ("GUI_PADX", GUI_PADX_MyPrint),
+                                        ("GUI_PADY", GUI_PADY_MyPrint),
+                                        ("GUI_ROWSPAN", GUI_ROWSPAN_MyPrint),
+                                        ("GUI_COLUMNSPAN", GUI_COLUMNSPAN_MyPrint)])
+
+    global MyPrint_SetupDict
+    MyPrint_SetupDict = dict([("NumberOfPrintLines", 10),
+                            ("WidthOfPrintingLabel", 200),
+                            ("PrintToConsoleFlag", 1),
+                            ("LogFileNameFullPath", os.path.join(os.getcwd(), "TestLog.txt")),
+                            ("GUIparametersDict", MyPrint_GUIparametersDict)])
+
+    if USE_MyPrint_FLAG == 1 and EXIT_PROGRAM_FLAG == 0:
+        try:
+            MyPrint_Object = MyPrint_ReubenPython2and3Class(MyPrint_SetupDict)
+            MyPrint_OPEN_FLAG = MyPrint_Object.OBJECT_CREATED_SUCCESSFULLY_FLAG
+
+        except:
+            exceptions = sys.exc_info()[0]
+            print("MyPrint_Object __init__: Exceptions: %s" % exceptions)
+            traceback.print_exc()
+    #################################################
+    #################################################
+
+    #################################################
+    #################################################
+    if USE_MyPrint_FLAG == 1:
+        if EXIT_PROGRAM_FLAG == 0:
+            if MyPrint_OPEN_FLAG != 1:
+                print("Failed to open MyPrint_Object.")
+                ExitProgram_Callback()
+    #################################################
+    #################################################
+
+    ##########################################################################################################
+    ##########################################################################################################
+    ##########################################################################################################
+    
+    ##########################################################################################################
+    ##########################################################################################################
+    ##########################################################################################################
+
+    #################################################
+    #################################################
+    global MyPlotterPureTkinterStandAloneProcess_GUIparametersDict
+    MyPlotterPureTkinterStandAloneProcess_GUIparametersDict = dict([("EnableInternal_MyPrint_Flag", 1),
+                                                                    ("NumberOfPrintLines", 10),
+                                                                    ("GraphCanvasWidth", 900),
+                                                                    ("GraphCanvasHeight", 700),
+                                                                    ("GraphCanvasWindowStartingX", 0),
+                                                                    ("GraphCanvasWindowStartingY", 0),
+                                                                    ("GraphCanvasWindowTitle", "My plotting example!"),
+                                                                    ("GUI_RootAfterCallbackInterval_Milliseconds_IndependentOfParentRootGUIloopEvents", 30)])
+
+
+    global MyPlotterPureTkinterStandAloneProcess_SetupDict
+    MyPlotterPureTkinterStandAloneProcess_SetupDict = dict([("GUIparametersDict", MyPlotterPureTkinterStandAloneProcess_GUIparametersDict),
+                                                            ("ParentPID", os.getpid()),
+                                                            ("WatchdogTimerDurationSeconds_ExpirationWillEndStandAlonePlottingProcess", 5.0),
+                                                            ("CurvesToPlotNamesAndColorsDictOfLists", dict([("NameList", ["raw", "zeroed", "offset"]),
+                                                                                                        ("MarkerSizeList", [2]*3),
+                                                                                                        ("LineWidthList", [2]*3),
+                                                                                                        ("IncludeInXaxisAutoscaleCalculationList", [1]*3),
+                                                                                                        ("IncludeInYaxisAutoscaleCalculationList", [1]*3),
+                                                                                                        ("ColorList", ["Blue", "Red", "Green"])])),
+                                                            ("SmallTextSize", 7),
+                                                            ("LargeTextSize", 12),
+                                                            ("NumberOfDataPointToPlot", 100),
+                                                            ("XaxisNumberOfTickMarks", 10),
+                                                            ("YaxisNumberOfTickMarks", 10),
+                                                            ("XaxisNumberOfDecimalPlacesForLabels", 3),
+                                                            ("YaxisNumberOfDecimalPlacesForLabels", 3),
+                                                            ("XaxisAutoscaleFlag", 1),
+                                                            ("YaxisAutoscaleFlag", 1),
+                                                            ("X_min", 0.0),
+                                                            ("X_max", 5.0),
+                                                            ("Y_min", -5.0),
+                                                            ("Y_max", 5.0),
+                                                            ("XaxisDrawnAtBottomOfGraph", 0),
+                                                            ("XaxisLabelString", "Time (sec)"),
+                                                            ("YaxisLabelString", "Y-units (units)"),
+                                                            ("ShowLegendFlag", 1),
+                                                            ("GraphNumberOfLeadingZeros", 0),
+                                                            ("GraphNumberOfDecimalPlaces", 3),
+                                                            ("SavePlot_DirectoryPath", os.path.join(os.getcwd(), "SavedImagesFolder")),
+                                                            ("KeepPlotterWindowAlwaysOnTopFlag", 0),
+                                                            ("RemoveTitleBorderCloseButtonAndDisallowWindowMoveFlag", 0),
+                                                            ("AllowResizingOfWindowFlag", 1)])
+
+    if USE_MyPlotterPureTkinterStandAloneProcess_FLAG == 1 and EXIT_PROGRAM_FLAG == 0:
+        try:
+            MyPlotterPureTkinterStandAloneProcess_Object = MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(MyPlotterPureTkinterStandAloneProcess_SetupDict)
+            MyPlotterPureTkinterStandAloneProcess_OPEN_FLAG = MyPlotterPureTkinterStandAloneProcess_Object.OBJECT_CREATED_SUCCESSFULLY_FLAG
+
+        except:
+            exceptions = sys.exc_info()[0]
+            print("MyPlotterPureTkinterStandAloneProcess_Object, exceptions: %s" % exceptions)
+            traceback.print_exc()
+    #################################################
+    #################################################
+
+    #################################################
+    #################################################
+    if USE_MyPlotterPureTkinterStandAloneProcess_FLAG == 1:
+        if EXIT_PROGRAM_FLAG == 0:
+            if MyPlotterPureTkinterStandAloneProcess_OPEN_FLAG != 1:
+                print("Failed to open MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class.")
+                ExitProgram_Callback()
+    #################################################
+    #################################################
+
+    ##########################################################################################################
+    ##########################################################################################################
+    ##########################################################################################################
+
+    ##########################################################################################################
+    ##########################################################################################################
+    ##########################################################################################################
+    if USE_KEYBOARD_FLAG == 1 and EXIT_PROGRAM_FLAG == 0:
+        keyboard.on_press_key("esc", ExitProgram_Callback)
+    ##########################################################################################################
+    ##########################################################################################################
+    ##########################################################################################################
+
+    ########################################################################################################## KEY GUI LINE
+    ##########################################################################################################
+    ##########################################################################################################
+    if USE_GUI_FLAG == 1 and EXIT_PROGRAM_FLAG == 0:
         print("Starting GUI thread...")
-        GUI_Thread_ThreadingObject = threading.Thread(target=GUI_Thread)
-        GUI_Thread_ThreadingObject.setDaemon(True) #Should mean that the GUI thread is destroyed automatically when the main thread is destroyed.
+        GUI_Thread_ThreadingObject = threading.Thread(target=GUI_Thread, daemon=True) #Daemon=True means that the GUI thread is destroyed automatically when the main thread is destroyed
         GUI_Thread_ThreadingObject.start()
-        time.sleep(0.5)  #Allow enough time for 'root' to be created that we can then pass it into other classes.
     else:
         root = None
         Tab_MainControls = None
         Tab_ZeroAndSnapshotData = None
         Tab_MyPrint = None
-    #################################################
-    #################################################
+    ##########################################################################################################
+    ##########################################################################################################
+    ##########################################################################################################
 
-    #################################################
-    #################################################
-    global ZeroAndSnapshotData_ReubenPython2and3ClassObject_Variables_ListOfDicts
-    ZeroAndSnapshotData_ReubenPython2and3ClassObject_Variables_ListOfDicts = [dict([("Variable_Name", "desired_angle_deg_1"),("DataCollectionDurationInSecondsForSnapshottingAndZeroing", 5.5)]),
-                                                                              dict([("Variable_Name", "B"),("DataCollectionDurationInSecondsForSnapshottingAndZeroing", 7.5)]),
-                                                                              dict([("Variable_Name", "C"),("DataCollectionDurationInSecondsForSnapshottingAndZeroing", 9.0)])]
-
-
-    global ZeroAndSnapshotData_ReubenPython2and3ClassObject_GUIparametersDict
-    ZeroAndSnapshotData_ReubenPython2and3ClassObject_GUIparametersDict = dict([("USE_GUI_FLAG", USE_GUI_FLAG and SHOW_IN_GUI_ZeroAndSnapshotData_FLAG),
-                                    ("root", Tab_ZeroAndSnapshotData),
-                                    ("EnableInternal_MyPrint_Flag", 1),
-                                    ("NumberOfPrintLines", 10),
-                                    ("UseBorderAroundThisGuiObjectFlag", 1),
-                                    ("GUI_ROW", GUI_ROW_ZeroAndSnapshotData),
-                                    ("GUI_COLUMN", GUI_COLUMN_ZeroAndSnapshotData),
-                                    ("GUI_PADX", GUI_PADX_ZeroAndSnapshotData),
-                                    ("GUI_PADY", GUI_PADY_ZeroAndSnapshotData),
-                                    ("GUI_ROWSPAN", GUI_ROWSPAN_ZeroAndSnapshotData),
-                                    ("GUI_COLUMNSPAN", GUI_COLUMNSPAN_ZeroAndSnapshotData)])
-
-    global ZeroAndSnapshotData_ReubenPython2and3ClassObject_setup_dict
-    ZeroAndSnapshotData_ReubenPython2and3ClassObject_setup_dict = dict([("GUIparametersDict", ZeroAndSnapshotData_ReubenPython2and3ClassObject_GUIparametersDict),
-                                                                ("NameToDisplay_UserSet", "Reuben's Test ZeroAndSnapshotData"),
-                                                                ("Variables_ListOfDicts", ZeroAndSnapshotData_ReubenPython2and3ClassObject_Variables_ListOfDicts)])
-
-    if USE_ZeroAndSnapshotData_FLAG == 1:
-        try:
-            ZeroAndSnapshotData_ReubenPython2and3ClassObject = ZeroAndSnapshotData_ReubenPython2and3Class(ZeroAndSnapshotData_ReubenPython2and3ClassObject_setup_dict)
-            ZeroAndSnapshotData_OPEN_FLAG = ZeroAndSnapshotData_ReubenPython2and3ClassObject.OBJECT_CREATED_SUCCESSFULLY_FLAG
-
-        except:
-            exceptions = sys.exc_info()[0]
-            print("ZeroAndSnapshotData_ReubenPython2and3ClassObject __init__: Exceptions: %s" % exceptions, 0)
-            traceback.print_exc()
-    #################################################
-    #################################################
-
-    #################################################
-    #################################################
-    if USE_MYPRINT_FLAG == 1:
-
-        MyPrint_ReubenPython2and3ClassObject_GUIparametersDict = dict([("USE_GUI_FLAG", USE_GUI_FLAG and SHOW_IN_GUI_MYPRINT_FLAG),
-                                                                        ("root", Tab_MyPrint),
-                                                                        ("UseBorderAroundThisGuiObjectFlag", 0),
-                                                                        ("GUI_ROW", GUI_ROW_MYPRINT),
-                                                                        ("GUI_COLUMN", GUI_COLUMN_MYPRINT),
-                                                                        ("GUI_PADX", GUI_PADX_MYPRINT),
-                                                                        ("GUI_PADY", GUI_PADY_MYPRINT),
-                                                                        ("GUI_ROWSPAN", GUI_ROWSPAN_MYPRINT),
-                                                                        ("GUI_COLUMNSPAN", GUI_COLUMNSPAN_MYPRINT)])
-
-        MyPrint_ReubenPython2and3ClassObject_setup_dict = dict([("NumberOfPrintLines", 10),
-                                                                ("WidthOfPrintingLabel", 200),
-                                                                ("PrintToConsoleFlag", 1),
-                                                                ("LogFileNameFullPath", os.getcwd() + "//TestLog.txt"),
-                                                                ("GUIparametersDict", MyPrint_ReubenPython2and3ClassObject_GUIparametersDict)])
-
-        try:
-            MyPrint_ReubenPython2and3ClassObject = MyPrint_ReubenPython2and3Class(MyPrint_ReubenPython2and3ClassObject_setup_dict)
-            MYPRINT_OPEN_FLAG = MyPrint_ReubenPython2and3ClassObject.OBJECT_CREATED_SUCCESSFULLY_FLAG
-
-        except:
-            exceptions = sys.exc_info()[0]
-            print("MyPrint_ReubenPython2and3ClassObject __init__: Exceptions: %s" % exceptions)
-            traceback.print_exc()
-    #################################################
-    #################################################
-
-    #################################################
-    #################################################
-    global MyPlotterPureTkinter_MostRecentDict
-    MyPlotterPureTkinter_MostRecentDict = dict()
-
-    global MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3ClassObject_MostRecentDict_StandAlonePlottingProcess_ReadyForWritingFlag
-    MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3ClassObject_MostRecentDict_StandAlonePlottingProcess_ReadyForWritingFlag = -1
-
-
-
-    MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3ClassObject_GUIparametersDict = dict([("EnableInternal_MyPrint_Flag", 1),
-                                                                                                ("NumberOfPrintLines", 10),
-                                                                                                ("GraphCanvasWidth", 1280),
-                                                                                                ("GraphCanvasHeight", 700),
-                                                                                                ("GraphCanvasWindowStartingX", 0),
-                                                                                                ("GraphCanvasWindowStartingY", 0),
-                                                                                                ("GUI_RootAfterCallbackInterval_Milliseconds_IndependentOfParentRootGUIloopEvents", 20)])
-
-    global MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3ClassObject_setup_dict
-    MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3ClassObject_setup_dict = dict([("GUIparametersDict", MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3ClassObject_GUIparametersDict),
-                                                                                        ("ParentPID", os.getpid()),
-                                                                                        ("WatchdogTimerExpirationDurationSeconds_StandAlonePlottingProcess", 5.0),
-                                                                                        ("MarkerSize", 3),
-                                                                                        ("CurvesToPlotNamesAndColorsDictOfLists", dict([("NameList", ["raw", "zeroed", "offset"]),("ColorList", ["blue", "red", "green"])])),
-                                                                                        ("NumberOfDataPointToPlot", 50),
-                                                                                        ("XaxisNumberOfTickMarks", 10),
-                                                                                        ("YaxisNumberOfTickMarks", 10),
-                                                                                        ("XaxisNumberOfDecimalPlacesForLabels", 3),
-                                                                                        ("YaxisNumberOfDecimalPlacesForLabels", 3),
-                                                                                        ("XaxisAutoscaleFlag", 1),
-                                                                                        ("YaxisAutoscaleFlag", 1),
-                                                                                        ("X_min", 0.0),
-                                                                                        ("X_max", 20.0),
-                                                                                        ("Y_min", 1.1*SINUSOIDAL_MOTION_INPUT_MinValue),
-                                                                                        ("Y_max", 1.1*SINUSOIDAL_MOTION_INPUT_MaxValue),
-                                                                                        ("XaxisDrawnAtBottomOfGraph", 0),
-                                                                                        ("XaxisLabelString", "Time (sec)"),
-                                                                                        ("YaxisLabelString", "Y-units (units)"),
-                                                                                        ("ShowLegendFlag", 1)])
-
-    if USE_PLOTTER_FLAG == 1:
-        try:
-            MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3ClassObject = MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3Class(MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3ClassObject_setup_dict)
-            time.sleep(0.25)
-            PLOTTER_OPEN_FLAG = MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3ClassObject.OBJECT_CREATED_SUCCESSFULLY_FLAG
-
-        except:
-            exceptions = sys.exc_info()[0]
-            print("MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3ClassObject, exceptions: %s" % exceptions)
-            traceback.print_exc()
-    #################################################
-    #################################################
-
-    #################################################
-    #################################################
-    if USE_ZeroAndSnapshotData_FLAG == 1 and ZeroAndSnapshotData_OPEN_FLAG != 1:
-        print("Failed to open ZeroAndSnapshotData_ReubenPython2and3Class.")
-        ExitProgram_Callback()
-    #################################################
-    #################################################
-
-    #################################################
-    #################################################
-    if USE_MYPRINT_FLAG == 1 and MYPRINT_OPEN_FLAG != 1:
-        print("Failed to open MyPrint_ReubenPython2and3ClassObject.")
-        ExitProgram_Callback()
-    #################################################
-    #################################################
-
-    #################################################
-    #################################################
-    if USE_PLOTTER_FLAG == 1 and PLOTTER_OPEN_FLAG != 1:
-        print("Failed to open MyPlotterPureTkinterClass_Object.")
-        ExitProgram_Callback()
-    #################################################
-    #################################################
-
-    ####################################################
-    ####################################################
+    ##########################################################################################################
+    ##########################################################################################################
+    ##########################################################################################################
     random.seed()
-    ####################################################
-    ####################################################
+    ##########################################################################################################
+    ##########################################################################################################
+    ##########################################################################################################
 
-    #################################################
-    #################################################
-    print("Starting main loop 'test_program_for_ZeroAndSnapshotData_ReubenPython2and3Class.")
-    StartingTime_MainLoopThread = getPreciseSecondsTimeStampString()
+    ##########################################################################################################
+    ##########################################################################################################
+    ##########################################################################################################
+    if EXIT_PROGRAM_FLAG == 0:
+        print("Starting main loop 'test_program_for_ZeroAndSnapshotData_ReubenPython2and3Class.")
+        StartingTime_MainLoopThread = getPreciseSecondsTimeStampString()
+    ##########################################################################################################
+    ##########################################################################################################
+    ##########################################################################################################
 
+    ##########################################################################################################
+    ##########################################################################################################
+    ##########################################################################################################
     while(EXIT_PROGRAM_FLAG == 0):
 
         ###################################################
+        ###################################################
+        ###################################################
         CurrentTime_MainLoopThread = getPreciseSecondsTimeStampString() - StartingTime_MainLoopThread
         ###################################################
-
+        ###################################################
+        ###################################################
+        
         ################################################### GET's
+        ###################################################
         ###################################################
         if ZeroAndSnapshotData_OPEN_FLAG == 1:
 
-            ZeroAndSnapshotData_MostRecentDict = ZeroAndSnapshotData_ReubenPython2and3ClassObject.GetMostRecentDataDict()
+            ZeroAndSnapshotData_MostRecentDict = ZeroAndSnapshotData_Object.GetMostRecentDataDict()
 
             if "DataUpdateNumber" in ZeroAndSnapshotData_MostRecentDict:
                 ZeroAndSnapshotData_MostRecentDict_DataUpdateNumber = ZeroAndSnapshotData_MostRecentDict["DataUpdateNumber"]
                 ZeroAndSnapshotData_MostRecentDict_LoopFrequencyHz = ZeroAndSnapshotData_MostRecentDict["LoopFrequencyHz"]
                 ZeroAndSnapshotData_MostRecentDict_OnlyVariablesAndValuesDictOfDicts = ZeroAndSnapshotData_MostRecentDict["OnlyVariablesAndValuesDictOfDicts"]
 
-                ZeroAndSnapshotData_MostRecentDict_desired_angle_deg_1__Raw_CurrentValue = ZeroAndSnapshotData_MostRecentDict_OnlyVariablesAndValuesDictOfDicts["desired_angle_deg_1"]["Raw_CurrentValue"]
-                ZeroAndSnapshotData_MostRecentDict_desired_angle_deg_1__Raw_CurrentValue_Zeroed = ZeroAndSnapshotData_MostRecentDict_OnlyVariablesAndValuesDictOfDicts["desired_angle_deg_1"]["Raw_CurrentValue_Zeroed"]
-                ZeroAndSnapshotData_MostRecentDict_desired_angle_deg_1__Raw_ZeroOffsetValue = ZeroAndSnapshotData_MostRecentDict_OnlyVariablesAndValuesDictOfDicts["desired_angle_deg_1"]["Raw_ZeroOffsetValue"]
+                ZeroAndSnapshotData_MostRecentDict_DesiredAngleDeg1__Raw_CurrentValue = ZeroAndSnapshotData_MostRecentDict_OnlyVariablesAndValuesDictOfDicts["DesiredAngleDeg1"]["Raw_CurrentValue"]
+                ZeroAndSnapshotData_MostRecentDict_DesiredAngleDeg1__Raw_CurrentValue_Zeroed = ZeroAndSnapshotData_MostRecentDict_OnlyVariablesAndValuesDictOfDicts["DesiredAngleDeg1"]["Raw_CurrentValue_Zeroed"]
+                ZeroAndSnapshotData_MostRecentDict_DesiredAngleDeg1__Raw_ZeroOffsetValue = ZeroAndSnapshotData_MostRecentDict_OnlyVariablesAndValuesDictOfDicts["DesiredAngleDeg1"]["Raw_ZeroOffsetValue"]
 
-                #print("ZeroAndSnapshotData_MostRecentDict_desired_angle_deg_1__Raw_ZeroOffsetValue: " + str(ZeroAndSnapshotData_MostRecentDict_desired_angle_deg_1__Raw_ZeroOffsetValue))
+                #print("ZeroAndSnapshotData_MostRecentDict_DesiredAngleDeg1__Raw_ZeroOffsetValue: " + str(ZeroAndSnapshotData_MostRecentDict_DesiredAngleDeg1__Raw_ZeroOffsetValue))
 
                 #"Raw_CurrentValue"
                 #"Filtered_CurrentValue"
@@ -822,89 +1051,118 @@ if __name__ == '__main__':
 
         ###################################################
         ###################################################
+        ###################################################
 
         ################################################### SET's
         ###################################################
+        ###################################################
         if ZeroAndSnapshotData_OPEN_FLAG == 1:
 
-            ####################################################
-            ZeroAndSnapshotData_ReubenPython2and3ClassObject.CheckStateMachine()
-            ####################################################
+            ###################################################
+            ###################################################
+            ZeroAndSnapshotData_Object.CheckStateMachine()
+            ###################################################
+            ###################################################
 
-            ####################################################
-            if USE_SINUSOIDAL_INPUT_FLAG == 1:
-                time_gain = math.pi / (2.0 * SINUSOIDAL_MOTION_INPUT_ROMtestTimeToPeakAngle)
-                desired_angle_deg_1 = 0.5*(SINUSOIDAL_MOTION_INPUT_MaxValue + SINUSOIDAL_MOTION_INPUT_MinValue) + abs(SINUSOIDAL_MOTION_INPUT_MaxValue - SINUSOIDAL_MOTION_INPUT_MinValue) * math.sin(time_gain * CurrentTime_MainLoopThread)  # AUTOMATIC SINUSOIDAL MOVEMENT
-            else:
-                desired_angle_deg_1 = 5.0
-            ####################################################
+            ###################################################
+            ###################################################
+            if USE_PeriodicInput_FLAG == 1:
 
-            ####################################################
-            if USE_SPECKLE_NOISE_FLAG == 1:
+                ####################################################
+                PeriodicInput_CalculatedValue_1 = GetLatestWaveformValue(CurrentTime_MainLoopThread, 
+                                                                    PeriodicInput_MinValue_1, 
+                                                                    PeriodicInput_MaxValue_1, 
+                                                                    PeriodicInput_Period_1, 
+                                                                    PeriodicInput_Type_1)
+                ###################################################
+                
+                ###################################################
                 NoiseCounter = NoiseCounter + 1
-                if NoiseCounter == 1:
-                    NoiseAmplitude = NoiseAmplitude_Percent0to1OfSinuisoidalInputAmplitude*abs(SINUSOIDAL_MOTION_INPUT_MaxValue - SINUSOIDAL_MOTION_INPUT_MinValue)
-                    NoiseValue = random.uniform(-1.0*NoiseAmplitude, NoiseAmplitude)
-                    desired_angle_deg_1 = desired_angle_deg_1 + NoiseValue
+                if NoiseCounter == NoiseCounter_FireEveryNth:
+                    NoiseAmplitude = NoiseAmplitude_Percent0to1OfPeriodicInputAmplitude * abs(PeriodicInput_MaxValue_1 - PeriodicInput_MinValue_1)
+                    NoiseValue = random.uniform(-1.0 * NoiseAmplitude, NoiseAmplitude)
+                    PeriodicInput_CalculatedValue_1 = PeriodicInput_CalculatedValue_1 + NoiseValue
                     NoiseCounter = 0
-            ####################################################
+                ###################################################
 
-            desired_angle_deg_1_ListOfDicts = [dict([("Variable_Name", "desired_angle_deg_1"), ("Raw_CurrentValue", desired_angle_deg_1 )]),
-                dict([("Variable_Name", "B"), ("Raw_CurrentValue", desired_angle_deg_1 + 1.0)]),
-                dict([("Variable_Name", "C"), ("Raw_CurrentValue", desired_angle_deg_1 - 1.0)])]
+                ###################################################
+                DesiredAngleDeg1 = PeriodicInput_CalculatedValue_1
+                ###################################################
+                
+            ###################################################
+            ###################################################
 
-            ZeroAndSnapshotData_ReubenPython2and3ClassObject.UpdateData(desired_angle_deg_1_ListOfDicts)
+            ###################################################
+            ###################################################
+            DesiredAngleDeg1_ListOfDicts = [dict([("Variable_Name", "DesiredAngleDeg1"), ("Raw_CurrentValue", DesiredAngleDeg1)]),
+                                            dict([("Variable_Name", "B"), ("Raw_CurrentValue", DesiredAngleDeg1 + 1.0)]),
+                                            dict([("Variable_Name", "C"), ("Raw_CurrentValue", DesiredAngleDeg1 - 1.0)])]
+
+            ZeroAndSnapshotData_Object.UpdateData(DesiredAngleDeg1_ListOfDicts)
+            ###################################################
+            ###################################################
+
+        ###################################################
         ###################################################
         ###################################################
 
         ################################################### SETs
         ###################################################
-        if PLOTTER_OPEN_FLAG == 1:
+        ###################################################
+        if MyPlotterPureTkinterStandAloneProcess_OPEN_FLAG == 1:
 
-            ####################################################
-            MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3ClassObject_MostRecentDict = MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3ClassObject.GetMostRecentDataDict()
+            ###################################################
+            ###################################################
+            MyPlotterPureTkinterStandAloneProcess_MostRecentDict = MyPlotterPureTkinterStandAloneProcess_Object.GetMostRecentDataDict()
 
-            if "StandAlonePlottingProcess_ReadyForWritingFlag" in MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3ClassObject_MostRecentDict:
-                MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3ClassObject_MostRecentDict_StandAlonePlottingProcess_ReadyForWritingFlag = MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3ClassObject_MostRecentDict["StandAlonePlottingProcess_ReadyForWritingFlag"]
+            if "StandAlonePlottingProcess_ReadyForWritingFlag" in MyPlotterPureTkinterStandAloneProcess_MostRecentDict:
+                MyPlotterPureTkinterStandAloneProcess_MostRecentDict_ReadyForWritingFlag = MyPlotterPureTkinterStandAloneProcess_MostRecentDict["StandAlonePlottingProcess_ReadyForWritingFlag"]
 
-                if MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3ClassObject_MostRecentDict_StandAlonePlottingProcess_ReadyForWritingFlag == 1:
-                    if CurrentTime_MainLoopThread - LastTime_MainLoopThread_PLOTTER >= 0.040:
-                        #MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3ClassObject.ExternalAddPointOrListOfPointsToPlot(["raw"], [CurrentTime_CalculatedFromMainThread], [Tension_ActualValue_grams])
-                        MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3ClassObject.ExternalAddPointOrListOfPointsToPlot(["raw", "zeroed", "offset"],
-                                                                                                                                [CurrentTime_MainLoopThread, CurrentTime_MainLoopThread, CurrentTime_MainLoopThread],
-                                                                                                                                [ZeroAndSnapshotData_MostRecentDict_desired_angle_deg_1__Raw_CurrentValue, ZeroAndSnapshotData_MostRecentDict_desired_angle_deg_1__Raw_CurrentValue_Zeroed, ZeroAndSnapshotData_MostRecentDict_desired_angle_deg_1__Raw_CurrentValue - ZeroAndSnapshotData_MostRecentDict_desired_angle_deg_1__Raw_ZeroOffsetValue])
+                if MyPlotterPureTkinterStandAloneProcess_MostRecentDict_ReadyForWritingFlag == 1:
+                    if CurrentTime_MainLoopThread - LastTime_MainLoopThread_MyPlotterPureTkinterStandAloneProcess >= MyPlotterPureTkinterStandAloneProcess_GUIparametersDict["GUI_RootAfterCallbackInterval_Milliseconds_IndependentOfParentRootGUIloopEvents"]/1000.0 + 0.001:
 
-                        LastTime_MainLoopThread_PLOTTER = CurrentTime_MainLoopThread
-            ####################################################
+                        MyPlotterPureTkinterStandAloneProcess_Object.ExternalAddPointOrListOfPointsToPlot(["raw", "zeroed", "offset"],
+                                                                                                        [CurrentTime_MainLoopThread, CurrentTime_MainLoopThread, CurrentTime_MainLoopThread],
+                                                                                                        [ZeroAndSnapshotData_MostRecentDict_DesiredAngleDeg1__Raw_CurrentValue, ZeroAndSnapshotData_MostRecentDict_DesiredAngleDeg1__Raw_CurrentValue_Zeroed, ZeroAndSnapshotData_MostRecentDict_DesiredAngleDeg1__Raw_CurrentValue - ZeroAndSnapshotData_MostRecentDict_DesiredAngleDeg1__Raw_ZeroOffsetValue])
+
+                        LastTime_MainLoopThread_MyPlotterPureTkinterStandAloneProcess = CurrentTime_MainLoopThread
+            ###################################################
+            ###################################################
 
         ###################################################
         ###################################################
+        ###################################################
 
-        time.sleep(0.002)
-    #################################################
-    #################################################
+        time.sleep(0.002) #unicorn
+    ##########################################################################################################
+    ##########################################################################################################
+    ##########################################################################################################
 
-    ################################################# THIS IS THE EXIT ROUTINE!
-    #################################################
+    ########################################################################################################## THIS IS THE EXIT ROUTINE!
+    ##########################################################################################################
+    ##########################################################################################################
     print("Exiting main program 'test_program_for_ZeroAndSnapshotData_ReubenPython2and3Class.")
 
     #################################################
     if ZeroAndSnapshotData_OPEN_FLAG == 1:
-        ZeroAndSnapshotData_ReubenPython2and3ClassObject.ExitProgram_Callback()
+        ZeroAndSnapshotData_Object.ExitProgram_Callback()
     #################################################
 
     #################################################
-    if MYPRINT_OPEN_FLAG == 1:
-        MyPrint_ReubenPython2and3ClassObject.ExitProgram_Callback()
+    if MyPrint_OPEN_FLAG == 1:
+        MyPrint_Object.ExitProgram_Callback()
     #################################################
 
     #################################################
-    if PLOTTER_OPEN_FLAG == 1:
-        MyPlotterPureTkinterStandAloneProcess_ReubenPython2and3ClassObject.ExitProgram_Callback()
+    if MyPlotterPureTkinterStandAloneProcess_OPEN_FLAG == 1:
+        MyPlotterPureTkinterStandAloneProcess_Object.ExitProgram_Callback()
     #################################################
 
-    #################################################
-    #################################################
+    ##########################################################################################################
+    ##########################################################################################################
+    ##########################################################################################################
 
+##########################################################################################################
+##########################################################################################################
 ##########################################################################################################
 ##########################################################################################################
